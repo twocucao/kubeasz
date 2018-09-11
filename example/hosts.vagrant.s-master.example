@@ -1,0 +1,75 @@
+# 集群部署节点：一般为运行ansible 脚本的节点
+# 变量 NTP_ENABLED (=yes/no) 设置集群是否安装 chrony 时间同步
+[deploy]
+10.64.3.100 NTP_ENABLED=no
+
+# etcd集群请提供如下NODE_NAME，请注意etcd集群必须是1,3,5,7...奇数个节点
+[etcd]
+10.64.3.100 NODE_NAME=etcd1
+
+[kube-master]
+10.64.3.100
+
+[kube-node]
+10.64.3.101
+10.64.3.102
+
+# 参数 NEW_INSTALL：yes表示新建，no表示使用已有harbor服务器
+[harbor]
+#192.168.1.8 HARBOR_DOMAIN="harbor.yourdomain.com" NEW_INSTALL=no
+
+# 预留组，后续添加node节点使用
+[new-node]
+#192.168.1.xx
+
+[all:vars]
+# 使用 Python3
+ansible_python_interpreter=/usr/bin/python3
+# ---------集群主要参数---------------
+#集群部署模式：allinone, single-master, multi-master
+DEPLOY_MODE=single-master
+
+#集群主版本号，目前支持: v1.8, v1.9, v1.10，v1.11
+K8S_VER="v1.11"
+
+#集群 MASTER IP，自动生成
+MASTER_IP="{{ groups['kube-master'][0] }}"
+KUBE_APISERVER="https://{{ MASTER_IP }}:6443"
+
+#TLS Bootstrapping 使用的 Token，使用 head -c 16 /dev/urandom | od -An -t x | tr -d ' ' 生成
+BOOTSTRAP_TOKEN="d18f94b5fa585c7123f56803d925d2e7"
+
+# 集群网络插件，目前支持calico, flannel, kube-router, cilium
+CLUSTER_NETWORK="flannel"
+
+# 服务网段 (Service CIDR），注意不要与内网已有网段冲突
+SERVICE_CIDR="10.68.0.0/16"
+
+# POD 网段 (Cluster CIDR），注意不要与内网已有网段冲突
+CLUSTER_CIDR="172.20.0.0/16"
+
+# 服务端口范围 (NodePort Range)
+NODE_PORT_RANGE="20000-40000"
+
+# kubernetes 服务 IP (预分配，一般是 SERVICE_CIDR 中第一个IP)
+CLUSTER_KUBERNETES_SVC_IP="10.68.0.1"
+
+# 集群 DNS 服务 IP (从 SERVICE_CIDR 中预分配)
+CLUSTER_DNS_SVC_IP="10.68.0.2"
+
+# 集群 DNS 域名
+CLUSTER_DNS_DOMAIN="cluster.local."
+
+# 集群basic auth 使用的用户名和密码
+BASIC_AUTH_USER="admin"
+BASIC_AUTH_PASS="test1234"
+
+# ---------附加参数--------------------
+#默认二进制文件目录
+bin_dir="/opt/kube/bin"
+
+#证书目录
+ca_dir="/etc/kubernetes/ssl"
+
+#部署目录，即 ansible 工作目录
+base_dir="/etc/ansible"

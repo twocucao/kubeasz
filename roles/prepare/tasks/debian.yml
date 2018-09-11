@@ -1,4 +1,9 @@
-# 删除默认安装
+- name: 使用阿里云外部源
+  action: template src=sources_list.j2 dest=/etc/apt/sources.list owner=root group=root mode=0644
+
+- name: Apt Update
+  apt: update_cache=yes cache_valid_time=3600
+
 - name: 删除ubuntu默认安装
   apt: name={{ item }} state=absent
   with_items:
